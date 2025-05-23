@@ -1,0 +1,15 @@
+For this project, I aimed to create a user-friendly, visually engaging design that aligned with the fun and youthful aesthetic of CollegeTips. I focused on a clean layout, responsive design for mobile and desktop, and interactive elements to make the experience dynamic and enjoyable.
+
+I used ChatGPT to brainstorm ideas, structure the layout, and refine content. For code-related queries and implementation help, I used DeepSeek, especially when dealing with responsive CSS and JavaScript interactivity.
+
+Some of the challenges I faced included:
+
+Organizing images by category while keeping load times fast.
+
+Making the gallery interactive and responsive across devices.
+
+Troubleshooting layout issues with flex/grid combinations.
+
+Figuring out how to dynamically fetch and display images from Instagram and other sources.
+
+I consulted ChatGPT multiple times to solve bugs, decide on UI behavior, and improve the overall user flow.
