@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CollegeTips Media Gallery</title>
+    <style>
+        :root {
+            --primary: #4a6bff;
+            --secondary: #ff6b6b;
+            --dark: #2c3e50;
+            --light: #f8f9fa;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .tagline {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .filter-buttons {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding: 0 1rem;
+        }
+        
+        .filter-btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 50px;
+            background-color: white;
+            color: var(--dark);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .filter-btn:hover, .filter-btn.active {
+            background-color: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            padding: 1rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .gallery-item {
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            aspect-ratio: 1 / 1;
+        }
+        
+        .gallery-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .gallery-img, .gallery-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+        
+        .gallery-item:hover .gallery-img {
+            transform: scale(1.1);
+        }
+        
+        .gallery-caption {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+            color: white;
+            padding: 1.5rem 1rem 1rem;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .gallery-item:hover .gallery-caption {
+            transform: translateY(0);
+        }
+        
+        .category-tag {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        /* Video-specific styles */
+        .video-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .gallery-video {
+            border-radius: 10px;
+        }
+        
+        .play-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .gallery-item:hover .play-button {
+            background-color: var(--primary);
+            color: white;
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+        
+        .video-duration {
+            position: absolute;
+            bottom: 1rem;
+            right: 1rem;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            max-width: 90%;
+            max-height: 90%;
+        }
+        
+        .modal-img, .modal-video {
+            max-width: 100%;
+            max-height: 90vh;
+            object-fit: contain;
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .gallery {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .gallery {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-buttons {
+                gap: 0.5rem;
+            }
+            
+            .filter-btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.9rem;
+            }
+            
+            .play-button {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+        }
+        
+        /* Animation for fun */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .fun-float {
+            animation: float 3s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>CollegeTips <span class="fun-float">📸🎬</span> Gallery</h1>
+        <p class="tagline">Capturing the journey, one moment at a time</p>
+    </header>
+    
+    <div class="filter-buttons">
+        <button class="filter-btn active" data-filter="all">All Media</button>
+        <button class="filter-btn" data-filter="team">Team Vibes 🤝</button>
+        <button class="filter-btn" data-filter="campaigns">Creative Campaigns 🎨</button>
+        <button class="filter-btn" data-filter="fun">Work Hard, Play Hard 🥳</button>
+        <button class="filter-btn" data-filter="bts">Behind-The-Scenes 🎥</button>
+        <button class="filter-btn" data-filter="videos">Funny Videos 🎬😂</button>
+        <button class="filter-btn" data-filter="celebrate">Celebrations 🎂</button>
+        <button class="filter-btn" data-filter="hacks">Study Hacks 📚⚡</button>
+    </div>
+    
+    <div class="gallery">
+        <!-- Team Vibes -->
+        <div class="gallery-item" data-category="team">
+            <img src="Images/Team Vibes/2043671836851720628_5419910858_jpg.jpg" alt="Team meeting" class="gallery-img">
+            <span class="category-tag">Team</span>
+            <div class="gallery-caption">
+                <p>Good environment makes everything better</p>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="team">
+            <img src="Images/Team Vibes/2044536096117098920_5419910858_jpg.jpg" alt="Team meeting" class="gallery-img">
+            <span class="category-tag">Team</span>
+            <div class="gallery-caption">
+                <p>Team Bonding activity</p>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="team">
+            <img src="Images/Team Vibes/2054384800420581571_5419910858_jpg.jpg" alt="Team meeting" class="gallery-img">
+            <span class="category-tag">Team</span>
+            <div class="gallery-caption">
+                <p>Our Hero Ji</p>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="team">
+            <img src="Images/Team Vibes/2830771258541396693_5419910858_jpg.jpg" alt="Team meeting" class="gallery-img">
+            <span class="category-tag">Team</span>
+            <div class="gallery-caption">
+                <p>Always read caption</p>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="team">
+            <img src="Images/Team Vibes/2044536096075126039_5419910858_jpg.jpg" alt="Team meeting" class="gallery-img">
+            <span class="category-tag">Team</span>
+            <div class="gallery-caption">
+                <p>CollegeTips</p>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="team">
+            <img src="Images/Team Vibes/2043671836868529443_5419910858_jpg.jpg" alt="Team meeting" class="gallery-img">
+            <span class="category-tag">Team</span>
+            <div class="gallery-caption">
+                <p>Unfiltered moments</p>
+            </div>
+        </div>
+        
+        
+        <!-- Creative Campaigns -->
+        <div class="gallery-item" data-category="campaigns">
+            <img src="Images/Creative Campaigns/2046343901547550525_5419910858_jpg.jpg" alt="Team meeting" class="gallery-img">
+            <span class="category-tag">Campaign</span>
+            <div class="gallery-caption">
+                <p>For real?</p>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="campaigns">
+            <img src="Images/Creative Campaigns/1994945062253329935_5419910858_jpg.jpg" alt="Team meeting" class="gallery-img">
+            <span class="category-tag">Campaign</span>
+            <div class="gallery-caption">
+                <p>Women let me hear you</p>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="campaigns">
+            <img src="Images/Creative Campaigns/2557596060258436859_5419910858_jpg.jpg" alt="Team meeting" class="gallery-img">
+            <span class="category-tag">Campaign</span>
+            <div class="gallery-caption">
+                <p>Certificate before date</p>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="campaigns">
+            <img src="Images/Creative Campaigns/2306917107419575904_5419910858_jpg.jpg" alt="Team meeting" class="gallery-img">
+            <span class="category-tag">Campaign</span>
+            <div class="gallery-caption">
+                <p>Make your parents happy</p>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="campaigns">
+            <img src="Images/Creative Campaigns/2566961167551782732_5419910858_jpg.jpg" alt="Team meeting" class="gallery-img">
+            <span class="category-tag">Campaign</span>
+            <div class="gallery-caption">
+                <p>HEHE</p>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="campaigns">
+            <img src="Images/Creative Campaigns/2562701745665334119_5419910858_jpg.jpg" alt="Team meeting" class="gallery-img">
+            <span class="category-tag">Campaign</span>
+            <div class="gallery-caption">
+                <p>Breathe</p>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="campaigns">
+            <img src="Images/Creative Campaigns/2466935698874648488_5419910858_jpg.jpg" alt="Team meeting" class="gallery-img">
+            <span class="category-tag">Campaign</span>
+            <div class="gallery-caption">
+                <p>SM</p>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="campaigns">
+            <img src="Images/Creative Campaigns/2778556858946727055_5419910858_jpg.jpg" alt="Team meeting" class="gallery-img">
+            <span class="category-tag">Campaign</span>
+            <div class="gallery-caption">
+                <p>Pet Friendly</p>
+            </div>
+        </div>
+        
+        <!-- Work Hard, Play Hard -->
+        <div class="gallery-item" data-category="fun">
+            <img src="Images/Work Hard, Play Hard/1800873378903583485_5419910858_jpg.jpg" alt="Team building" class="gallery-img">
+            <span class="category-tag">Fun</span>
+            <div class="gallery-caption">
+                <p>Hustle, then celebrate</p>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="fun">
+            <img src="Images/Work Hard, Play Hard/2043671836851822355_5419910858_jpg.jpg" alt="Team building" class="gallery-img">
+            <span class="category-tag">Fun</span>
+            <div class="gallery-caption">
+                <p>Brainstorm to breakdance</p>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="fun">
+            <img src="Images/Work Hard, Play Hard/2044536096091817917_5419910858_jpg.jpg" alt="Team building" class="gallery-img">
+            <span class="category-tag">Fun</span>
+            <div class="gallery-caption">
+                <p>All in, then all out</p>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="fun">
+            <img src="Images/Work Hard, Play Hard/2044536096108735300_5419910858_jpg.jpg" alt="Team building" class="gallery-img">
+            <span class="category-tag">Fun</span>
+            <div class="gallery-caption">
+                <p>Code by day, chill by nightt</p>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="fun">
+            <img src="Images/Work Hard, Play Hard/2044536096150689356_5419910858_jpg.jpg" alt="Team building" class="gallery-img">
+            <span class="category-tag">Fun</span>
+            <div class="gallery-caption">
+                <p>Serious work, silly vibes</p>
+            </div>
+        </div>
+        
+        
+        <!-- Behind-The-Scenes -->
+        <div class="gallery-item" data-category="bts">
+            <img src="Images/Behind-The-Scenes/2054561363153714887_5419910858_jpg.jpg" alt="Team building" class="gallery-img">
+            <span class="category-tag">Behind-The-Scenes</span>
+            <div class="gallery-caption">
+                <p>Cameras off, stories on</p>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="bts">
+            <img src="Images/Behind-The-Scenes/2190038503692577472_5419910858_jpg.jpg" alt="Team building" class="gallery-img">
+            <span class="category-tag">Behind-The-Scenes</span>
+            <div class="gallery-caption">
+                <p>Backstage brilliance</p>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="bts">
+            <img src="Images/Behind-The-Scenes/2190038503709443013_5419910858_jpg.jpg" alt="Team building" class="gallery-img">
+            <span class="category-tag">Behind-The-Scenes</span>
+            <div class="gallery-caption">
+                <p>Messy desks, genius minds</p>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="bts">
+            <img src="Images/Behind-The-Scenes/2192353469061694218_5419910858_jpg.jpg" alt="Team building" class="gallery-img">
+            <span class="category-tag">Behind-The-Scenes</span>
+            <div class="gallery-caption">
+                <p>Raw, real, relatable</p>
+            </div>
+        </div>
+   
+        
+        <!-- Funny Videos -->
+        <div class="gallery-item" data-category="videos">
+            <div class="video-container">
+                <video class="gallery-video" loop muted poster="Videos/Funny Videos/2081233057498814130_5419910858_mp4.mp4">
+                    <source src="Videos/Funny Videos/2081233057498814130_5419910858_mp4.mp4">
+                </video>
+                <div class="play-button">▶</div>
+                <span class="video-duration">0:15</span>
+            </div>
+            <span class="category-tag">Video</span>
+            <div class="gallery-caption">
+                <p>When everything reminds you of her</p>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="videos">
+            <div class="video-container">
+                <video class="gallery-video" loop muted poster="Videos/Funny Videos/2089338157090208382_5419910858_mp4.mp4">
+                    <source src="Videos/Funny Videos/2089338157090208382_5419910858_mp4.mp4" type="video/mp4">
+                </video>
+                <div class="play-button">▶</div>
+                <span class="video-duration">0:15</span>
+            </div>
+            <span class="category-tag">Video</span>
+            <div class="gallery-caption">
+                <p>Average Orientation Day</p>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="videos">
+            <div class="video-container">
+                <video class="gallery-video" loop muted poster="Videos/Funny Videos/2187996980234706032_5419910858_mp4.mp4">
+                    <source src="Videos/Funny Videos/2187996980234706032_5419910858_mp4.mp4" type="video/mp4">
+                </video>
+                <div class="play-button">▶</div>
+                <span class="video-duration">0:15</span>
+            </div>
+            <span class="category-tag">Video</span>
+            <div class="gallery-caption">
+                <p>We all had this moment don't lie</p>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="videos">
+            <div class="video-container">
+                <video class="gallery-video" loop muted poster="Videos/Funny Videos/2189431575857796985_5419910858_mp4.mp4">
+                    <source src="Videos/Funny Videos/2189431575857796985_5419910858_mp4.mp4" type="video/mp4">
+                </video>
+                <div class="play-button">▶</div>
+                <span class="video-duration">0:15</span>
+            </div>
+            <span class="category-tag">Video</span>
+            <div class="gallery-caption">
+                <p>When Google also hates you</p>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="videos">
+            <div class="video-container">
+                <video class="gallery-video" loop muted poster="Videos/Funny Videos/2214057840614971619_5419910858_mp4.mp4">
+                    <source src="Videos/Funny Videos/2214057840614971619_5419910858_mp4.mp4" type="video/mp4">
+                </video>
+                <div class="play-button">▶</div>
+                <span class="video-duration">0:15</span>
+            </div>
+            <span class="category-tag">Video</span>
+            <div class="gallery-caption">
+                <p>Yaad Teri Aayegi</p>
+            </div>
+        </div>
+        
+        <!-- Celebrations -->
+        <div class="gallery-item" data-category="celebrate">
+            <img src="Images/Celebrations/1771971426213399937_5419910858_jpg.jpg" alt="Team lunch" class="gallery-img">
+            <span class="category-tag">Celebrations</span>
+            <div class="gallery-caption">
+                <p>If you don't like cakes, I don't like you</p>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="celebrate">
+            <img src="Images/Celebrations/2037879895849440691_5419910858_jpg.jpg" alt="Team lunch" class="gallery-img">
+            <span class="category-tag">Celebrations</span>
+            <div class="gallery-caption">
+                <p>Moments worth cheering for</p>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="celebrate">
+            <img src="Images/Celebrations/2037879895874655893_5419910858_jpg.jpg" alt="Team lunch" class="gallery-img">
+            <span class="category-tag">Celebrations</span>
+            <div class="gallery-caption">
+                <p>Joy in every frame</p>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="celebrate">
+            <img src="Images/Celebrations/2037879895891391530_5419910858_jpg.jpg" alt="Team lunch" class="gallery-img">
+            <span class="category-tag">Celebrations</span>
+            <div class="gallery-caption">
+                <p>Celebrate every win</p>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="celebrate">
+            <img src="Images/Celebrations/2043671836835064659_5419910858_jpg.jpg" alt="Team lunch" class="gallery-img">
+            <span class="category-tag">Celebrations</span>
+            <div class="gallery-caption">
+                <p>Celebrate every win</p>
+            </div>
+        </div>
+
+        
+        <!-- More images would be added here -->
+        
+        
+        
+        <div class="gallery-item" data-category="team">
+            <img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" alt="Team lunch" class="gallery-img">
+            <span class="category-tag">Team</span>
+            <div class="gallery-caption">
+                <h3>Team Lunch</h3>
+                <p>Fueling up with good food and great company</p>
+            </div>
+        </div>
+        
+    
+
+   
+        
+        <!-- Another Funny Video -->
+
+    
+    <!-- Modal for fullscreen view -->
+    <div class="modal" id="imageModal">
+        <span class="close-btn">&times;</span>
+        <div class="modal-content">
+            <img class="modal-img" id="modalImage" src="" alt="">
+            <video class="modal-video" id="modalVideo" controls></video>
+        </div>
+    </div>
+    
+    <script>
+        // Filter functionality
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const galleryItems = document.querySelectorAll('.gallery-item');
+        
+        filterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Update active button
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                
+                const filterValue = button.dataset.filter;
+                
+                // Filter items
+                galleryItems.forEach(item => {
+                    if (filterValue === 'all' || item.dataset.category === filterValue) {
+                        item.style.display = 'block';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+        });
+        
+        // Video functionality
+        const videoContainers = document.querySelectorAll('.video-container');
+        
+        videoContainers.forEach(container => {
+            const video = container.querySelector('.gallery-video');
+            const playBtn = container.querySelector('.play-button');
+            
+            playBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                video.play();
+                playBtn.style.display = 'none';
+                video.setAttribute('controls', 'true');
+            });
+            
+            video.addEventListener('click', (e) => e.stopPropagation());
+            video.addEventListener('pause', () => {
+                if (!video.ended) {
+                    playBtn.style.display = 'flex';
+                    video.removeAttribute('controls');
+                }
+            });
+        });
+        
+        // Modal functionality
+        const modal = document.getElementById('imageModal');
+        const modalImg = document.getElementById('modalImage');
+        const modalVideo = document.getElementById('modalVideo');
+        const closeBtn = document.querySelector('.close-btn');
+        
+        galleryItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const img = item.querySelector('.gallery-img');
+                const video = item.querySelector('.gallery-video');
+                
+                if (img) {
+                    modal.style.display = 'flex';
+                    modalImg.src = img.src;
+                    modalImg.style.display = 'block';
+                    modalVideo.style.display = 'none';
+                } else if (video) {
+                    modal.style.display = 'flex';
+                    modalVideo.src = video.querySelector('source').src;
+                    modalVideo.style.display = 'block';
+                    modalImg.style.display = 'none';
+                    modalVideo.play();
+                }
+            });
+        });
+        
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+            modalVideo.pause();
+        });
+        
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+                modalVideo.pause();
+            }
+        });
+    </script>
+</body>
+</html>
